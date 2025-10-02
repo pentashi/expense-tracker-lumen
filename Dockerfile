@@ -14,8 +14,9 @@ COPY . /var/www/html
 
 WORKDIR /var/www/html
 
-# Fix permissions for Laravel/Lumen
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+# Fix permissions for Laravel/Lumen (create dirs if they don't exist)
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Install Composer
