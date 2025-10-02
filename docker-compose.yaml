@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_KEY: base64:1KwGL/yXHpzIJMHq2me2n1qrNYvhMHY1TOactJsY+FI=
+      APP_URL: http://localhost
+      APP_NAME: "Expense Tracker"
+      APP_TIMEZONE: UTC
+      LOG_CHANNEL: stack
+
+      # Postgres config
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: expense_manager
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+      JWT_SECRET: ZlJTFnLS7tJMZcLUuOczg3htAPppfcF0NXVg6vecdQOvCpKrn2Bq1NUjfPMwfpfN
+      JWT_TTL: 60
+      JWT_REFRESH_TTL: 20160
+    depends_on:
+      - db
+
+  # db:
+  #   image: postgres:13
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: expense_manager
+  #   ports:
+  #     - "5432:5432"

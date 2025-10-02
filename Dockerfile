@@ -1,26 +1,31 @@
-# Use official PHP image
-FROM php:8.3-cli
+# Use PHP 7.4 with Apache
+FROM php:7.4-apache
 
-# Install required extensions
+# Install required system packages
 RUN apt-get update && apt-get install -y \
-    unzip \
-    libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
+    libzip-dev zip unzip git libpq-dev \
+    && docker-php-ext-install pdo pdo_pgsql
+
+# Enable Apache rewrite
+RUN a2enmod rewrite
+
+# Copy project files
+COPY . /var/www/html
+
+WORKDIR /var/www/html
+
+# Fix permissions for Laravel/Lumen
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
-WORKDIR /app
-
-# Copy app files
-COPY . .
-
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Expose Render's port
-EXPOSE 10000
+# Expose port 80
+EXPOSE 80
 
-# Run Lumen with PHP built-in server
-CMD ["php", "-S", "0.0.0.0:10000", "-t", "public"]
+# Start Apache
+CMD ["apache2-foreground"]
