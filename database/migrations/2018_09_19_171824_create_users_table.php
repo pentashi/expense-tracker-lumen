@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->string('name', 100);
             $table->string('email', 100)->unique();
             $table->string('password', 100);
-            $table->integer('currency_id')->default('18');
+            $table->integer('currency_id')->default('156');
             $table->boolean('is_admin')->default(false);
             $table->timestamps();
         });

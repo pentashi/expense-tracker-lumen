@@ -174,24 +174,46 @@ class IncomeController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function summary()
-    {
-        $userIncomes = IncomeExpense::join('currencies', 'currencies.id', 'income_expenses.currency_id')
-            ->where('income_expenses.transaction_type', 'Income')
-            ->where('income_expenses.created_by', Auth::id())
-            ->select('currencies.currency_code', 'currencies.currency_name', DB::raw('SUM(amount) AS total'))
-            ->groupBy('currency_id');
+ public function summary()
+{
+    try {
+        $userId = Auth::id();
 
-        $incomeThisMonth = $userIncomes->whereYear('income_expenses.transaction_date', date('Y'))
+        $incomeThisMonth = IncomeExpense::join('currencies', 'currencies.id', 'income_expenses.currency_id')
+            ->where('income_expenses.transaction_type', 'Income')
+            ->where('income_expenses.created_by', $userId)
+            ->whereYear('income_expenses.transaction_date', date('Y'))
             ->whereMonth('income_expenses.transaction_date', date('n'))
+            ->select(
+                'income_expenses.currency_id',
+                'currencies.currency_code',
+                'currencies.currency_name',
+                DB::raw('SUM(amount) AS total')
+            )
+            ->groupBy('income_expenses.currency_id', 'currencies.currency_code', 'currencies.currency_name')
             ->get();
 
-        $incomeToday = $userIncomes->whereDate('income_expenses.transaction_date', date('Y-m-d'))
+        $incomeToday = IncomeExpense::join('currencies', 'currencies.id', 'income_expenses.currency_id')
+            ->where('income_expenses.transaction_type', 'Income')
+            ->where('income_expenses.created_by', $userId)
+            ->whereDate('income_expenses.transaction_date', date('Y-m-d'))
+            ->select(
+                'income_expenses.currency_id',
+                'currencies.currency_code',
+                'currencies.currency_name',
+                DB::raw('SUM(amount) AS total')
+            )
+            ->groupBy('income_expenses.currency_id', 'currencies.currency_code', 'currencies.currency_name')
             ->get();
 
         return response()->json(['data' => [
             'income_month' => $incomeThisMonth,
             'income_today' => $incomeToday
         ]], 200);
+    } catch (\Exception $e) {
+        \Log::error('Income summary error: ' . $e->getMessage());
+        return response()->json(['error' => 'Server error'], 500);
     }
+}
+
 }
